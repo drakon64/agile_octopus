@@ -57,7 +57,7 @@ fn get_rates(period_from: DateTime<Tz>, period_to: DateTime<Tz>) -> Vec<(String,
     rates
 }
 
-fn get_cheapest_rate(rates: Vec<(String, String, f64)>) -> (String, String, f64) {
+fn get_cheapest_rate(rates: Vec<(String, String, f64)>) -> (String, String) {
     let mut cheapest: Option<&(String, String, f64)> = None;
     for i in rates.iter() {
         if cheapest == None || cheapest.unwrap().2 > i.2 {
@@ -74,7 +74,6 @@ fn get_cheapest_rate(rates: Vec<(String, String, f64)>) -> (String, String, f64)
             .unwrap()
             .with_timezone(&London)
             .to_rfc3339_opts(Secs, true),
-        cheapest.unwrap().2,
     )
 }
 
@@ -97,7 +96,6 @@ mod tests {
             (
                 "2020-02-12T03:00:00Z".to_string(),
                 "2020-02-12T04:00:00Z".to_string(),
-                4.5
             )
         )
     }
