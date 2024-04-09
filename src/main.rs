@@ -32,7 +32,7 @@ fn get_tomorrow() -> (DateTime<Tz>, DateTime<Tz>) {
     (period_from, period_to)
 }
 
-fn get_rates(period_from: DateTime<Tz>, period_to: DateTime<Tz>) -> Vec<(String, f64)> {
+fn get_rates(period_from: DateTime<Tz>, period_to: DateTime<Tz>) -> Vec<(String, String, f64)> {
     let mut request = reqwest::blocking::Client::new()
         .request(Method::GET, "https://api.octopus.energy/v1/products/AGILE-18-02-21/electricity-tariffs/E-1R-AGILE-18-02-21-C/standard-unit-rates/")
         .query(&[("period_from", period_from.to_rfc3339_opts(Secs, true)), ("period_to", period_to.to_rfc3339_opts(Secs, true))])
@@ -51,21 +51,31 @@ fn get_rates(period_from: DateTime<Tz>, period_to: DateTime<Tz>) -> Vec<(String,
 
         let value_exc_vat = request.results[i].value_exc_vat + request.results[i + 1].value_exc_vat;
 
-        rates.push((format!("{} - {}", valid_from, valid_to), value_exc_vat));
+        rates.push((valid_from.to_owned(), valid_to.to_owned(), value_exc_vat));
     }
 
     rates
 }
 
-fn get_cheapest_rate(rates: Vec<(String, f64)>) -> (String, f64) {
-    let mut cheapest: Option<&(String, f64)> = None;
+fn get_cheapest_rate(rates: Vec<(String, String, f64)>) -> (String, String, f64) {
+    let mut cheapest: Option<&(String, String, f64)> = None;
     for i in rates.iter() {
-        if cheapest == None || cheapest.unwrap().1 > i.1 {
+        if cheapest == None || cheapest.unwrap().2 > i.2 {
             cheapest = Option::from(i)
         }
     }
 
-    cheapest.unwrap().clone()
+    (
+        DateTime::parse_from_rfc3339(&cheapest.unwrap().0)
+            .unwrap()
+            .with_timezone(&London)
+            .to_string(),
+        DateTime::parse_from_rfc3339(&cheapest.unwrap().1)
+            .unwrap()
+            .with_timezone(&London)
+            .to_string(),
+        cheapest.unwrap().2,
+    )
 }
 
 #[cfg(test)]
@@ -85,7 +95,8 @@ mod tests {
         assert_eq!(
             cheapest_rate,
             (
-                "2020-02-12T03:00:00Z - 2020-02-12T04:00:00Z".to_string(),
+                "2020-02-12 03:00:00 GMT".to_string(),
+                "2020-02-12 04:00:00 GMT".to_string(),
                 4.5
             )
         )
