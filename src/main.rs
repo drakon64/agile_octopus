@@ -22,7 +22,7 @@ fn get_tomorrow() -> (DateTime<Tz>, DateTime<Tz>) {
 
     let period_to = London
         .from_local_datetime(
-            &(*&tomorrow + Duration::days(1))
+            &(tomorrow + Duration::days(1))
                 .date_naive()
                 .and_hms_opt(0, 0, 0)
                 .unwrap(),
