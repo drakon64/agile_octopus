@@ -9,8 +9,15 @@ use reqwest::Method;
 
 fn main() {
     let tomorrow = get_tomorrow();
+    let cheapest_rate = get_cheapest_rate(get_rates(tomorrow.0, tomorrow.1));
 
-    println!("{:?}", get_cheapest_rate(get_rates(tomorrow.0, tomorrow.1)))
+    println!(
+        "{}",
+        format!(
+            "The cheapest hour is between {} and {}.",
+            cheapest_rate.0, cheapest_rate.1
+        )
+    )
 }
 
 fn get_tomorrow() -> (DateTime<Tz>, DateTime<Tz>) {
@@ -57,7 +64,7 @@ fn get_rates(period_from: DateTime<Tz>, period_to: DateTime<Tz>) -> Vec<(String,
     rates
 }
 
-fn get_cheapest_rate(rates: Vec<(String, String, f64)>) -> (String, String) {
+fn get_cheapest_rate(rates: Vec<(String, String, f64)>) -> (DateTime<Tz>, DateTime<Tz>) {
     let mut cheapest: Option<&(String, String, f64)> = None;
     for i in rates.iter() {
         if cheapest == None || cheapest.unwrap().2 > i.2 {
@@ -68,12 +75,10 @@ fn get_cheapest_rate(rates: Vec<(String, String, f64)>) -> (String, String) {
     (
         DateTime::parse_from_rfc3339(&cheapest.unwrap().0)
             .unwrap()
-            .with_timezone(&London)
-            .to_rfc3339_opts(Secs, true),
+            .with_timezone(&London),
         DateTime::parse_from_rfc3339(&cheapest.unwrap().1)
             .unwrap()
-            .with_timezone(&London)
-            .to_rfc3339_opts(Secs, true),
+            .with_timezone(&London),
     )
 }
 
@@ -94,8 +99,8 @@ mod tests {
         assert_eq!(
             cheapest_rate,
             (
-                "2020-02-12T03:00:00Z".to_string(),
-                "2020-02-12T04:00:00Z".to_string(),
+                London.with_ymd_and_hms(2020, 2, 12, 3, 0, 0).unwrap(),
+                London.with_ymd_and_hms(2020, 2, 12, 4, 0, 0).unwrap(),
             )
         )
     }
