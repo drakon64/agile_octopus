@@ -38,6 +38,10 @@ resource "aws_scheduler_schedule" "agile_octopus" {
   target {
     arn      = aws_lambda_function.agile_octopus.arn
     role_arn = aws_iam_role.scheduler.arn
+
+    retry_policy {
+      maximum_retry_attempts = 0
+    }
   }
 
   name = "AgileOctopus"
