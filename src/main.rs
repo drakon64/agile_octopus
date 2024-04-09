@@ -2,7 +2,7 @@ mod standard_unit_rates;
 
 use crate::standard_unit_rates::StandardUnitRates;
 use chrono::SecondsFormat::Secs;
-use chrono::{DateTime, Duration, TimeZone, Utc};
+use chrono::{DateTime, Duration, NaiveTime, TimeZone, Utc};
 use chrono_tz::Europe::London;
 use chrono_tz::Tz;
 use reqwest::Method;
@@ -15,7 +15,8 @@ fn main() {
         "{}",
         format!(
             "The cheapest hour is between {} and {}.",
-            cheapest_rate.0, cheapest_rate.1
+            cheapest_rate.0.format("%-I:%M %p"),
+            cheapest_rate.1.format("%-I:%M %p")
         )
     )
 }
@@ -39,7 +40,10 @@ fn get_tomorrow() -> (DateTime<Tz>, DateTime<Tz>) {
     (period_from, period_to)
 }
 
-fn get_rates(period_from: DateTime<Tz>, period_to: DateTime<Tz>) -> Vec<(String, String, f64)> {
+fn get_rates(
+    period_from: DateTime<Tz>,
+    period_to: DateTime<Tz>,
+) -> Vec<(DateTime<Tz>, DateTime<Tz>, f64)> {
     let mut request = reqwest::blocking::Client::new()
         .request(Method::GET, "https://api.octopus.energy/v1/products/AGILE-18-02-21/electricity-tariffs/E-1R-AGILE-18-02-21-C/standard-unit-rates/")
         .query(&[("period_from", period_from.to_rfc3339_opts(Secs, true)), ("period_to", period_to.to_rfc3339_opts(Secs, true))])
@@ -53,8 +57,16 @@ fn get_rates(period_from: DateTime<Tz>, period_to: DateTime<Tz>) -> Vec<(String,
     let mut rates = vec![];
 
     for i in 1..(request.results.len() - 1) {
-        let valid_from = &request.results[i].valid_from;
-        let valid_to = &request.results[i + 1].valid_to;
+        let valid_from = London.from_utc_datetime(
+            &DateTime::parse_from_rfc3339(&request.results[i].valid_from)
+                .unwrap()
+                .naive_utc(),
+        );
+        let valid_to = London.from_utc_datetime(
+            &DateTime::parse_from_rfc3339(&request.results[i + 1].valid_to)
+                .unwrap()
+                .naive_utc(),
+        );
 
         let value_exc_vat = request.results[i].value_exc_vat + request.results[i + 1].value_exc_vat;
 
@@ -64,8 +76,8 @@ fn get_rates(period_from: DateTime<Tz>, period_to: DateTime<Tz>) -> Vec<(String,
     rates
 }
 
-fn get_cheapest_rate(rates: Vec<(String, String, f64)>) -> (DateTime<Tz>, DateTime<Tz>) {
-    let mut cheapest: Option<&(String, String, f64)> = None;
+fn get_cheapest_rate(rates: Vec<(DateTime<Tz>, DateTime<Tz>, f64)>) -> (NaiveTime, NaiveTime) {
+    let mut cheapest: Option<&(DateTime<Tz>, DateTime<Tz>, f64)> = None;
     for i in rates.iter() {
         if cheapest == None || cheapest.unwrap().2 > i.2 {
             cheapest = Option::from(i)
@@ -73,19 +85,15 @@ fn get_cheapest_rate(rates: Vec<(String, String, f64)>) -> (DateTime<Tz>, DateTi
     }
 
     (
-        DateTime::parse_from_rfc3339(&cheapest.unwrap().0)
-            .unwrap()
-            .with_timezone(&London),
-        DateTime::parse_from_rfc3339(&cheapest.unwrap().1)
-            .unwrap()
-            .with_timezone(&London),
+        cheapest.unwrap().0.naive_local().time(),
+        cheapest.unwrap().1.naive_local().time(),
     )
 }
 
 #[cfg(test)]
 mod tests {
     use crate::{get_cheapest_rate, get_rates};
-    use chrono::TimeZone;
+    use chrono::{NaiveTime, TimeZone};
     use chrono_tz::Europe::London;
 
     #[test]
@@ -99,8 +107,8 @@ mod tests {
         assert_eq!(
             cheapest_rate,
             (
-                London.with_ymd_and_hms(2020, 2, 12, 3, 0, 0).unwrap(),
-                London.with_ymd_and_hms(2020, 2, 12, 4, 0, 0).unwrap(),
+                NaiveTime::from_hms_opt(3, 0, 0).unwrap(),
+                NaiveTime::from_hms_opt(4, 0, 0).unwrap(),
             )
         )
     }
