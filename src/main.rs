@@ -6,19 +6,18 @@ use chrono::{DateTime, Duration, NaiveTime, TimeZone, Utc};
 use chrono_tz::Europe::London;
 use chrono_tz::Tz;
 use reqwest::Method;
+use std::env;
 
-fn main() {
+#[tokio::main]
+async fn main() {
     let tomorrow = get_tomorrow();
-    let cheapest_rate = get_cheapest_rate(get_rates(tomorrow.0, tomorrow.1));
+    let cheapest_rate = get_cheapest_rate(get_rates(tomorrow.0, tomorrow.1).await);
 
-    println!(
-        "{}",
-        format!(
-            "The cheapest hour is between {} and {}.",
-            cheapest_rate.0.format("%-I:%M %p"),
-            cheapest_rate.1.format("%-I:%M %p")
-        )
+    send_sms(
+        cheapest_rate.0.format("%-I:%M %p").to_string(),
+        cheapest_rate.1.format("%-I:%M %p").to_string(),
     )
+    .await;
 }
 
 fn get_tomorrow() -> (DateTime<Tz>, DateTime<Tz>) {
@@ -40,16 +39,18 @@ fn get_tomorrow() -> (DateTime<Tz>, DateTime<Tz>) {
     (period_from, period_to)
 }
 
-fn get_rates(
+async fn get_rates(
     period_from: DateTime<Tz>,
     period_to: DateTime<Tz>,
 ) -> Vec<(DateTime<Tz>, DateTime<Tz>, f64)> {
-    let mut request = reqwest::blocking::Client::new()
+    let mut request = reqwest::Client::new()
         .request(Method::GET, "https://api.octopus.energy/v1/products/AGILE-18-02-21/electricity-tariffs/E-1R-AGILE-18-02-21-C/standard-unit-rates/")
         .query(&[("period_from", period_from.to_rfc3339_opts(Secs, true)), ("period_to", period_to.to_rfc3339_opts(Secs, true))])
         .send()
+        .await
         .unwrap()
         .json::<StandardUnitRates>()
+        .await
         .unwrap();
 
     request.results.reverse();
@@ -88,6 +89,19 @@ fn get_cheapest_rate(rates: Vec<(DateTime<Tz>, DateTime<Tz>, f64)>) -> (NaiveTim
         cheapest.unwrap().0.naive_local().time(),
         cheapest.unwrap().1.naive_local().time(),
     )
+}
+
+async fn send_sms(valid_from: String, valid_to: String) {
+    aws_sdk_sns::Client::new(&aws_config::load_from_env().await)
+        .publish()
+        .phone_number(env::var("PHONE_NUMBER").unwrap())
+        .message(format!(
+            "The cheapest hour is between {} and {}.",
+            valid_from, valid_to
+        ))
+        .send()
+        .await
+        .unwrap();
 }
 
 #[cfg(test)]
