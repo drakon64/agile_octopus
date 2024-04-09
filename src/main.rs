@@ -69,11 +69,11 @@ fn get_cheapest_rate(rates: Vec<(String, String, f64)>) -> (String, String, f64)
         DateTime::parse_from_rfc3339(&cheapest.unwrap().0)
             .unwrap()
             .with_timezone(&London)
-            .to_string(),
+            .to_rfc3339_opts(Secs, true),
         DateTime::parse_from_rfc3339(&cheapest.unwrap().1)
             .unwrap()
             .with_timezone(&London)
-            .to_string(),
+            .to_rfc3339_opts(Secs, true),
         cheapest.unwrap().2,
     )
 }
@@ -95,8 +95,8 @@ mod tests {
         assert_eq!(
             cheapest_rate,
             (
-                "2020-02-12 03:00:00 GMT".to_string(),
-                "2020-02-12 04:00:00 GMT".to_string(),
+                "2020-02-12T03:00:00Z".to_string(),
+                "2020-02-12T04:00:00Z".to_string(),
                 4.5
             )
         )
