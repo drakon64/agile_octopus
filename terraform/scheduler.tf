@@ -12,9 +12,9 @@ data "aws_iam_policy_document" "scheduler_assume_role_policy" {
 
 data "aws_iam_policy_document" "scheduler" {
   statement {
-    actions   = ["lambda:InvokeAsync"]
+    actions   = ["lambda:InvokeFunction"]
     effect    = "Allow"
-    resources = [aws_lambda_function.agile_octopus.invoke_arn]
+    resources = [aws_lambda_function.agile_octopus.arn]
   }
 }
 
