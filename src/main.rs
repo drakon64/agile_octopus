@@ -1,9 +1,11 @@
+mod standard_unit_rates;
+
+use crate::standard_unit_rates::StandardUnitRates;
 use chrono::SecondsFormat::Secs;
 use chrono::{DateTime, Duration, TimeZone, Utc};
 use chrono_tz::Europe::London;
 use chrono_tz::Tz;
 use reqwest::Method;
-use serde::Deserialize;
 
 fn main() {
     let tomorrow = get_tomorrow();
@@ -68,30 +70,24 @@ fn get_cheapest_rate(rates: Vec<(String, f64)>) -> (String, f64) {
 
 #[cfg(test)]
 mod tests {
-    use chrono::{TimeZone};
-    use chrono_tz::Europe::London;
     use crate::{get_cheapest_rate, get_rates};
+    use chrono::TimeZone;
+    use chrono_tz::Europe::London;
 
     #[test]
     fn test_cheapest_rate() {
-        let period_from = London.with_ymd_and_hms(2020,2,12,0,0,0).unwrap();
-        let period_to = London.with_ymd_and_hms(2020,2,13,0,0,0).unwrap();
+        let period_from = London.with_ymd_and_hms(2020, 2, 12, 0, 0, 0).unwrap();
+        let period_to = London.with_ymd_and_hms(2020, 2, 13, 0, 0, 0).unwrap();
 
-        let rates = get_rates(period_from ,period_to);
+        let rates = get_rates(period_from, period_to);
         let cheapest_rate = get_cheapest_rate(rates);
 
-        assert_eq!(cheapest_rate, ("2020-02-12T03:00:00Z - 2020-02-12T04:00:00Z".to_string(), 4.5))
+        assert_eq!(
+            cheapest_rate,
+            (
+                "2020-02-12T03:00:00Z - 2020-02-12T04:00:00Z".to_string(),
+                4.5
+            )
+        )
     }
-}
-
-#[derive(Deserialize)]
-struct StandardUnitRates {
-    results: Vec<StandardUnitRate>,
-}
-
-#[derive(Deserialize)]
-struct StandardUnitRate {
-    value_exc_vat: f64,
-    valid_from: String,
-    valid_to: String,
 }
