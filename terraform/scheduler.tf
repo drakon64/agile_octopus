@@ -44,6 +44,6 @@ resource "aws_scheduler_schedule" "agile_octopus" {
     }
   }
 
-  name = "AgileOctopus"
+  name                         = "AgileOctopus"
   schedule_expression_timezone = "Europe/London"
 }
