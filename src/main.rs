@@ -1,6 +1,7 @@
 mod standard_unit_rates;
 
 use crate::standard_unit_rates::StandardUnitRates;
+use aws_lambda_events::eventbridge::EventBridgeEvent;
 use chrono::SecondsFormat::Secs;
 use chrono::{DateTime, Duration, NaiveTime, TimeZone, Utc};
 use chrono_tz::Europe::London;
@@ -8,7 +9,6 @@ use chrono_tz::Tz;
 use lambda_runtime::{run, service_fn, tracing, Error, LambdaEvent};
 use reqwest::Method;
 use std::env;
-use aws_lambda_events::eventbridge::EventBridgeEvent;
 
 #[tokio::main]
 async fn main() -> Result<(), Error> {
