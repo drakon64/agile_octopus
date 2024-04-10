@@ -28,7 +28,8 @@
         "lambda:GetFunction",
         "lambda:ListVersionsByFunction",
         "lambda:GetFunctionCodeSigningConfig",
-        "lambda:DeleteFunction"
+        "lambda:DeleteFunction",
+        "lambda:UpdateFunctionCode"
       ],
       "Resource": "arn:aws:lambda:*:*:function:agile_octopus"
     },
