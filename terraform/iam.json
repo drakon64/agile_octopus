@@ -58,7 +58,7 @@
         "scheduler:GetSchedule",
         "scheduler:UpdateSchedule"
       ],
-      "Resource": "arn:aws:scheduler:eu-west-2:*:schedule/default/AgileOctopus"
+      "Resource": "arn:aws:scheduler:*:*:schedule/default/AgileOctopus"
     }
   ]
 }
