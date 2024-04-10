@@ -5,11 +5,19 @@ use chrono::SecondsFormat::Secs;
 use chrono::{DateTime, Duration, NaiveTime, TimeZone, Utc};
 use chrono_tz::Europe::London;
 use chrono_tz::Tz;
+use lambda_runtime::{run, service_fn, tracing, Error, LambdaEvent};
 use reqwest::Method;
 use std::env;
+use aws_lambda_events::eventbridge::EventBridgeEvent;
 
 #[tokio::main]
-async fn main() {
+async fn main() -> Result<(), Error> {
+    tracing::init_default_subscriber();
+
+    run(service_fn(function_handler)).await
+}
+
+async fn function_handler(_event: LambdaEvent<EventBridgeEvent<String>>) -> Result<(), Error> {
     let tomorrow = get_tomorrow();
     let cheapest_rate = get_cheapest_rate(get_rates(tomorrow.0, tomorrow.1).await);
 
@@ -18,6 +26,8 @@ async fn main() {
         cheapest_rate.1.format("%-I:%M %p").to_string(),
     )
     .await;
+
+    Ok(())
 }
 
 fn get_tomorrow() -> (DateTime<Tz>, DateTime<Tz>) {
@@ -110,12 +120,12 @@ mod tests {
     use chrono::{NaiveTime, TimeZone};
     use chrono_tz::Europe::London;
 
-    #[test]
-    fn test_cheapest_rate() {
+    #[tokio::test]
+    async fn test_cheapest_rate() {
         let period_from = London.with_ymd_and_hms(2020, 2, 12, 0, 0, 0).unwrap();
         let period_to = London.with_ymd_and_hms(2020, 2, 13, 0, 0, 0).unwrap();
 
-        let rates = get_rates(period_from, period_to);
+        let rates = get_rates(period_from, period_to).await;
         let cheapest_rate = get_cheapest_rate(rates);
 
         assert_eq!(

@@ -5,9 +5,11 @@ edition = "2021"
 
 [dependencies]
 aws-config = { version = "1", features = ["behavior-version-latest"] }
+aws_lambda_events = { version = "0", default-features = false, features = ["eventbridge"] }
 aws-sdk-sns = "1"
 chrono = { version = "0", default-features = false, features = ["clock"] }
 chrono-tz = { version = "0", default-features = false }
+lambda_runtime = "0"
 reqwest = { version = "0", default-features = false, features = ["blocking", "json", "rustls-tls"] }
 serde = { version = "1", default-features = false, features = ["derive"] }
 tokio = { version = "1", features = ["full"] }
