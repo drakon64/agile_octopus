@@ -106,7 +106,7 @@ async fn send_sms(valid_from: String, valid_to: String) {
         .publish()
         .phone_number(env::var("PHONE_NUMBER").unwrap())
         .message(format!(
-            "The cheapest hour is between {} and {}.",
+            "The cheapest hour for the Agile Octopus tariff tomorrow is between {} and {}.",
             valid_from, valid_to
         ))
         .send()
