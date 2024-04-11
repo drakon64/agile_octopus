@@ -1,5 +1,12 @@
-on: push
 name: rustfmt check
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
 
 jobs:
   rustfmt_check:
