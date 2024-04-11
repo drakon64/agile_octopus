@@ -90,7 +90,7 @@ async fn get_rates(
 fn get_cheapest_rate(rates: Vec<(DateTime<Tz>, DateTime<Tz>, f64)>) -> (NaiveTime, NaiveTime) {
     let mut cheapest: Option<&(DateTime<Tz>, DateTime<Tz>, f64)> = None;
     for i in rates.iter() {
-        if cheapest == None || cheapest.unwrap().2 > i.2 {
+        if Option::is_none(&cheapest) || cheapest.unwrap().2 > i.2 {
             cheapest = Option::from(i)
         }
     }
