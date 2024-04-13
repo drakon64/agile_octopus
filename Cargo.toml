@@ -13,3 +13,7 @@ lambda_runtime = "0"
 reqwest = { version = "0", default-features = false, features = ["blocking", "json", "rustls-tls"] }
 serde = { version = "1", default-features = false, features = ["derive"] }
 tokio = { version = "1", features = ["full"] }
+
+[profile.release]
+codegen-units = 1
+lto = true
