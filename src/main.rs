@@ -1,6 +1,3 @@
-mod standard_unit_rates;
-
-use crate::standard_unit_rates::StandardUnitRates;
 use aws_lambda_events::eventbridge::EventBridgeEvent;
 use chrono::SecondsFormat::Secs;
 use chrono::{DateTime, Duration, NaiveTime, TimeZone, Utc};
@@ -8,7 +5,20 @@ use chrono_tz::Europe::London;
 use chrono_tz::Tz;
 use lambda_runtime::{run, service_fn, tracing, Error, LambdaEvent};
 use reqwest::Method;
+use serde::Deserialize;
 use std::env;
+
+#[derive(Deserialize)]
+struct StandardUnitRates {
+    results: Vec<StandardUnitRate>,
+}
+
+#[derive(Deserialize)]
+struct StandardUnitRate {
+    value_exc_vat: f64,
+    valid_from: String,
+    valid_to: String,
+}
 
 #[tokio::main]
 async fn main() -> Result<(), Error> {
