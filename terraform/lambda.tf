@@ -13,6 +13,12 @@ data "aws_iam_policy_document" "lambda_assume_role_policy" {
 data "aws_iam_policy_document" "lambda" {
   statement {
     actions   = ["sns:Publish"]
+    effect    = "Deny"
+    resources = ["arn:aws:sns:*:*:*"]
+  }
+
+  statement {
+    actions   = ["sns:Publish"]
     effect    = "Allow"
     resources = ["*"]
   }
