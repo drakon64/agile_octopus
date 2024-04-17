@@ -20,7 +20,7 @@ struct StandardUnitRate {
     valid_to: String,
 }
 
-#[tokio::main]
+#[tokio::main(flavor = "current_thread")]
 async fn main() -> Result<(), Error> {
     tracing::init_default_subscriber();
 
@@ -130,7 +130,7 @@ mod tests {
     use chrono::{NaiveTime, TimeZone};
     use chrono_tz::Europe::London;
 
-    #[tokio::test]
+    #[tokio::test(flavor = "current_thread")]
     async fn test_cheapest_rate() {
         let period_from = London.with_ymd_and_hms(2020, 2, 12, 0, 0, 0).unwrap();
         let period_to = London.with_ymd_and_hms(2020, 2, 13, 0, 0, 0).unwrap();
