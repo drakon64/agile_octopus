@@ -1,6 +1,6 @@
 use aws_lambda_events::eventbridge::EventBridgeEvent;
 use chrono::SecondsFormat::Secs;
-use chrono::{DateTime, Duration, NaiveTime, TimeZone, Utc};
+use chrono::{DateTime, Duration, Local, NaiveTime, TimeZone, Utc};
 use chrono_tz::Europe::London;
 use chrono_tz::Tz;
 use lambda_runtime::{run, service_fn, tracing, Error, LambdaEvent};
@@ -16,8 +16,8 @@ struct StandardUnitRates {
 #[derive(Deserialize)]
 struct StandardUnitRate {
     value_exc_vat: f64,
-    valid_from: String,
-    valid_to: String,
+    valid_from: DateTime<Local>,
+    valid_to: DateTime<Local>,
 }
 
 #[tokio::main(flavor = "current_thread")]
@@ -78,16 +78,8 @@ async fn get_rates(
     let mut rates = vec![];
 
     for i in 1..(request.results.len() - 1) {
-        let valid_from = London.from_utc_datetime(
-            &DateTime::parse_from_rfc3339(&request.results[i].valid_from)
-                .unwrap()
-                .naive_utc(),
-        );
-        let valid_to = London.from_utc_datetime(
-            &DateTime::parse_from_rfc3339(&request.results[i + 1].valid_to)
-                .unwrap()
-                .naive_utc(),
-        );
+        let valid_from = London.from_utc_datetime(&request.results[i].valid_from.naive_utc());
+        let valid_to = London.from_utc_datetime(&request.results[i + 1].valid_to.naive_utc());
 
         let value_exc_vat = request.results[i].value_exc_vat + request.results[i + 1].value_exc_vat;
 
