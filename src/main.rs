@@ -146,8 +146,8 @@ mod tests {
 
         println!(
             "The cheapest hour for the Agile Octopus tariff tomorrow is between {} and {}.",
-            cheapest_rate.0.format("%-I:%M %p").to_string(),
-            cheapest_rate.1.format("%-I:%M %p").to_string()
+            cheapest_rate.0.format("%-I:%M %p"),
+            cheapest_rate.1.format("%-I:%M %p")
         )
     }
 }
