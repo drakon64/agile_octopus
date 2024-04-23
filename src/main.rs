@@ -118,12 +118,12 @@ async fn send_sms(valid_from: String, valid_to: String) {
 
 #[cfg(test)]
 mod tests {
-    use crate::{get_cheapest_rate, get_rates};
+    use crate::{get_cheapest_rate, get_rates, get_tomorrow};
     use chrono::{NaiveTime, TimeZone};
     use chrono_tz::Europe::London;
 
     #[tokio::test(flavor = "current_thread")]
-    async fn test_cheapest_rate() {
+    async fn test_historic_cheapest_rate() {
         let period_from = London.with_ymd_and_hms(2020, 2, 12, 0, 0, 0).unwrap();
         let period_to = London.with_ymd_and_hms(2020, 2, 13, 0, 0, 0).unwrap();
 
@@ -136,6 +136,18 @@ mod tests {
                 NaiveTime::from_hms_opt(3, 0, 0).unwrap(),
                 NaiveTime::from_hms_opt(4, 0, 0).unwrap(),
             )
+        )
+    }
+
+    #[tokio::test(flavor = "current_thread")]
+    async fn test_cheapest_rate() {
+        let tomorrow = get_tomorrow();
+        let cheapest_rate = get_cheapest_rate(get_rates(tomorrow.0, tomorrow.1).await);
+
+        println!(
+            "The cheapest hour for the Agile Octopus tariff tomorrow is between {} and {}.",
+            cheapest_rate.0.format("%-I:%M %p").to_string(),
+            cheapest_rate.1.format("%-I:%M %p").to_string()
         )
     }
 }
