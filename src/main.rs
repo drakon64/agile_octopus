@@ -128,7 +128,7 @@ async fn send_sms(valid_from: String, valid_to: String) {
 
 #[cfg(test)]
 mod tests {
-    use crate::{get_cheapest_rate, get_rates, get_tomorrow};
+    use crate::{get_cheapest_rate, get_rates};
     use chrono::{NaiveTime, TimeZone};
     use chrono_tz::Europe::London;
 
