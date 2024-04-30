@@ -33,11 +33,12 @@ async fn function_handler(_event: LambdaEvent<EventBridgeEvent<String>>) -> Resu
     let tomorrow = get_tomorrow();
     let cheapest_rate = get_cheapest_rate(get_rates(tomorrow.0, tomorrow.1).await);
 
-    send_sms(
-        cheapest_rate.0.format("%-I:%M %p").to_string(),
-        cheapest_rate.1.format("%-I:%M %p").to_string(),
-    )
-    .await;
+    let valid_from = cheapest_rate.0.format("%-I:%M %p").to_string();
+    let valid_to = cheapest_rate.1.format("%-I:%M %p").to_string();
+
+    println!("{}", format_message(&valid_from, &valid_to));
+
+    send_sms(&valid_from, &valid_to).await;
 
     Ok(())
 }
@@ -105,7 +106,7 @@ fn get_cheapest_rate(rates: Vec<(DateTime<Tz>, DateTime<Tz>, f64)>) -> (NaiveTim
     )
 }
 
-async fn send_sms(valid_from: String, valid_to: String) {
+async fn send_sms(valid_from: &String, valid_to: &String) {
     aws_sdk_sns::Client::new(&aws_config::load_from_env().await)
         .publish()
         .phone_number(env::var("PHONE_NUMBER").unwrap())
@@ -117,13 +118,17 @@ async fn send_sms(valid_from: String, valid_to: String) {
                 .build()
                 .unwrap(),
         )])))
-        .message(format!(
-            "The cheapest hour for the Agile Octopus tariff tomorrow is between {} and {}.",
-            valid_from, valid_to
-        ))
+        .message(format_message(valid_from, valid_to))
         .send()
         .await
         .unwrap();
+}
+
+fn format_message(valid_from: &String, valid_to: &String) -> String {
+    format!(
+        "The cheapest hour for the Agile Octopus tariff tomorrow is between {} and {}.",
+        valid_from, valid_to
+    )
 }
 
 #[cfg(test)]
