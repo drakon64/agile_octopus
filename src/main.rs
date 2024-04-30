@@ -1,4 +1,5 @@
 use aws_lambda_events::eventbridge::EventBridgeEvent;
+use aws_sdk_sns::types::MessageAttributeValue;
 use chrono::SecondsFormat::Secs;
 use chrono::{DateTime, Duration, Local, NaiveTime, TimeZone, Utc};
 use chrono_tz::Europe::London;
@@ -6,6 +7,7 @@ use chrono_tz::Tz;
 use lambda_runtime::{run, service_fn, tracing, Error, LambdaEvent};
 use reqwest::Method;
 use serde::Deserialize;
+use std::collections::HashMap;
 use std::env;
 
 #[derive(Deserialize)]
@@ -107,6 +109,14 @@ async fn send_sms(valid_from: String, valid_to: String) {
     aws_sdk_sns::Client::new(&aws_config::load_from_env().await)
         .publish()
         .phone_number(env::var("PHONE_NUMBER").unwrap())
+        .set_message_attributes(Some(HashMap::from([(
+            "AWS.SNS.SMS.SMSType".into(),
+            MessageAttributeValue::builder()
+                .set_data_type(Some("String".into()))
+                .set_string_value(Some("Promotional".into()))
+                .build()
+                .unwrap(),
+        )])))
         .message(format!(
             "The cheapest hour for the Agile Octopus tariff tomorrow is between {} and {}.",
             valid_from, valid_to
