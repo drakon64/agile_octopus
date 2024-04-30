@@ -148,16 +148,4 @@ mod tests {
             )
         )
     }
-
-    #[tokio::test(flavor = "current_thread")]
-    async fn test_cheapest_rate() {
-        let tomorrow = get_tomorrow();
-        let cheapest_rate = get_cheapest_rate(get_rates(tomorrow.0, tomorrow.1).await);
-
-        println!(
-            "The cheapest hour for the Agile Octopus tariff tomorrow is between {} and {}.",
-            cheapest_rate.0.format("%-I:%M %p"),
-            cheapest_rate.1.format("%-I:%M %p")
-        )
-    }
 }
